@@ -26,7 +26,7 @@ We then create a new thread object in our application, passing in the name of th
 thread t(hello_world);
 ```
 
-This will create a new thread that will execute the function `hello world`. The thread will start executing the function while the main application continues executing. The main application is itself a thread that is created and launched on application start.
+This will create a new thread that will execute the function `hello_world`. The thread will start executing the function while the main application continues executing. The main application is itself a thread that is created and launched on application start.
 
 ### Waiting for a Thread to Complete
 
@@ -171,11 +171,109 @@ Exiting
 
 ## Passing Parameters to Threads
 
+We can now create threads in C++ and put them to sleep. Next we are going to pass parameters to a `thread`. It just requires adding the parameters to the `thread` creation call. For example, the following function:
+
+```cpp
+void task(size_t n, int val)
+```
+
+we can create a `thread` and pass in parameters to `n` and `val` as follows:
+
+```cpp
+thread t(task, 1, 20);
+```
+
+`n` will be assigned 1 and `val` will be assigned 10. We will use random number generation to set these values.
+
 ### Random Numbers in C++
+
+To use random numbers we need to include the `random` header
+
+```cpp
+#include <random>
+```
+
+We then create a random number generation engine. There are several generation engines, but we will use the default. We create this as follows:
+
+```cpp
+default_random_engine e( seed );
+```
+
+`seed` is a value used to seed the random number engine.  You should, hopefully, know that we cannot truly create random numbers so a `seed` defines the sequence.  The same `seed` will produce the same sequence of random numbers.  We will available random hardware (if present) to generate our `seed`. To get a random number from the engine we call it:
+
+```cpp
+auto num = e();
+```
 
 ### Ranged `for` Loops
 
+The other new functionality we will use is a ranged `for` loop. You may be familiar with the `foreach` loop in C#. The ranged `for` loop in C has the same functionality:
+
+```cpp
+for (auto &t : threads)
+```
+
+We use `t` as an object reference in our loop. The `threads` variable is a collection.
+
 ### Test Application
+
+Our test application will create 100 threads.  Each `thread` will print out an index and a random number.  The threads will be stored in a `vector` so we can
+`join` them all.  Our test application is:
+
+```cpp
+#include <thread>
+#include <iostream>
+#include <vector>
+#include <random>
+#include <chrono>
+
+using namespace std;
+using namespace std::chrono;
+
+constexpr size_t num_threads = 100;
+
+void task(size_t n , int val)
+{
+    cout << "Thread: " << n << " Random Value: " << val << endl;
+}
+
+int main(int argc, char **argv)
+{
+    // C++ style of creating a random
+    // Seed with real random number if available
+    std::random_device r;
+    // Create random number generator
+    default_random_engine e(r());
+
+    // Create 100 threads in a vector
+    vector<thread> threads;
+    for (size_t i = 0; i < num_threads; ++i)
+        threads.push_back(thread(task, i, e()));
+
+    // Use C++ ranged for loop to join the threads
+    // Same as foreach in C#
+    for (auto &t : threads)
+        t.join();
+
+    return 0;
+}
+```
+
+Running the application gives the following:
+
+```shell
+...
+Thread: 89 Random Value: 1293822889
+Thread: 90 Random Value: 2009369548
+Thread: 92 Random Value: 1945950277
+Thread: 93 Random Value: 1557845376
+Thread: 94 Random Value: 586610208
+Thread: 95 Random Value: 60342479
+Thread: 96 Random Value: 563763169
+Thread: 97 Random Value: 469730819
+Thread: 98 Random Value: 615988561
+Thread: 99 Random Value: 2048566187
+```
 
 ## Lambda Expressions
 

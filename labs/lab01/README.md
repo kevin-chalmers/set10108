@@ -483,6 +483,27 @@ The output is:
 
 ## λ-Expressions and Threads
 
+We can use λ-expressions to create threads.  Our hello world thread application using λ-expressions is:
+
+```cpp
+#include <thread>
+#include <iostream>
+
+using namespace std;
+
+int main(int argc, char **argv)
+{
+    // Create a thread using a lambda expression
+    thread t([]{ cout << "Hello from lambda thread!" << endl; });
+    // Join thread
+    t.join();
+
+    return 0;
+}
+```
+
+It is that simple. For the rest of the module, it is up to you whether you use λ-expressions or not. We will work interchangeably, and there is no effect on your grades for your choice.
+
 ## Gathering Data
 
 ### Work Function

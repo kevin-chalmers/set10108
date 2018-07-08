@@ -53,7 +53,7 @@ This is the function called by the thread
 */
 void hello_world()
 {
-    cout << "Hello from thread" << this_thread::get_id() << endl ;
+    cout << "Hello from thread " << this_thread::get_id() << endl ;
 }
 
 int main(int argc, char **argv)

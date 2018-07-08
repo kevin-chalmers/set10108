@@ -81,6 +81,94 @@ Hello from thread 16196
 
 ## Multiple Tasks
 
+When multi-threading we really want to execute multiple tasks. Creating multiple threads is easy - we just create multiple thread objects.  We will use a new operation during this next example: `sleep_for`.  It will put a `thread` to sleep for an amount of time. For example, we can put a `thread` to sleep for 10 seconds.
+
+```cpp
+sleep_for(seconds(10));
+```
+
+The `chrono` header provides access to the duration constructs.
+
+```cpp
+#include <chrono>
+```
+
+Below is a multiple task test application:
+
+```cpp
+#include <thread>
+#include <chrono>
+#include <iostream>
+
+using namespace std;
+using namespace std::chrono;
+using namespace std::this_thread;
+
+void task_one()
+{
+    cout << "Task one starting" << endl;
+    cout << "Task one sleeping for 3 seconds" << endl;
+    sleep_for(seconds(3));
+    cout << "Task one awake again" << endl;
+    cout << "Task one sleeping for 5 seconds" << endl;
+    sleep_for(milliseconds(5000));
+    cout << "Task one awake again" << endl;
+    cout << "Task one ending" << endl;
+}
+
+void task_two()
+{
+    cout << "Task two starting" << endl;
+    cout << "Task two sleeping for 2 seconds" << endl;
+    sleep_for(microseconds(2000000));
+    cout << "Task two awake again" << endl;
+    cout << "Task two sleeping for 10 seconds" << endl;
+    sleep_for(seconds(10));
+    cout << "Task two awake again" << endl;
+    cout << "Task two ending" << endl;
+}
+
+int main(int argc, char **argv)
+{
+    cout << "Starting task one" << endl;
+    thread t1(task_one);
+    cout << "Starting task two" << endl;
+    thread t2(task_two);
+    cout << "Joining task one" << endl;
+    t1.join();
+    cout << "Task one joined" << endl;
+    cout << "Joining task two" << endl;
+    t2.join();
+    cout << "Task two joined" << endl;
+    cout << "Exiting" << endl;
+    return 0;
+}
+```
+
+This application has been designed to show the different time constructs and show multiple tasks interleaving.  The output from this application is:
+
+```shell
+Starting task one
+Starting task two
+Task one starting
+Task one sleeping for 3 seconds
+Joining task one
+Task two starting
+Task two sleeping for 2 seconds
+Task two awake again
+Task two sleeping for 10 seconds
+Task one awake again
+Task one sleeping for 5 seconds
+Task one awake again
+Task one ending
+Task one joined
+Joining task two
+Task two awake again
+Task two ending
+Task two joined
+Exiting
+```
+
 ## Passing Parameters to Threads
 
 ### Random Numbers in C++

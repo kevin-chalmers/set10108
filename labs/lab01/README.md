@@ -196,7 +196,7 @@ To use random numbers we need to include the `random` header
 We then create a random number generation engine. There are several generation engines, but we will use the default. We create this as follows:
 
 ```cpp
-default_random_engine e( seed );
+default_random_engine e(seed);
 ```
 
 `seed` is a value used to seed the random number engine.  You should, hopefully, know that we cannot truly create random numbers so a `seed` defines the sequence.  The same `seed` will produce the same sequence of random numbers.  We will available random hardware (if present) to generate our `seed`. To get a random number from the engine we call it:
@@ -275,25 +275,213 @@ Thread: 98 Random Value: 615988561
 Thread: 99 Random Value: 2048566187
 ```
 
-## Lambda Expressions
+## Lambda (λ)-Expressions
 
-### What is a Lambda Expression
+Lambda (λ)-expressions are becoming popular in object-oriented languages. λ-expressions come from functional languages, e.g. F#, Haskell, etc.  They allow function objects which we can apply parameters to and get a result.
 
-### Lambda Expressions in C++
+### What is a λ-Expression
+
+A λ-expression is essentially a function.  However, it has some properties that allow us to manipulate the function. For example, if we define a function as follows:
+
+```
+add(x, y) = x + y
+```
+
+We can use this function object to create a new function object that adds 3 to any parameter:
+
+```
+add3(y) = add(3)
+```
+
+We can then use the `add3` function as a new function. We can get the results as follows:
+
+```
+add(10, 5) = 15
+add3(10) = 13
+add(2, 0) = 2
+add4(y) = add(4)
+add4(6) = 10
+```
+
+### λ-Expressions in C++
+
+One advantage of C++ λ-expressions is they allow us to create functions with fewer lines of code.  Traditionally, we would create a function/method definition with parameters and return type. In C++, we can simplify this. For example, we can create an `add` function:
+
+```cpp
+auto add = [](int x , int y) { return x + y; };
+```
+
+The `[]` block allows parameter passing into the function. We define the parameters we want to pass to the function. Finally, in the curly brackets, we define the $\lambda$ expression. We can use the `add` as a normal function:
+
+```cpp
+auto x = add(10, 12);
+```
 
 ### Example Application
 
-#### Simple Lambda Expression Example
+We will look at a collection of different ways to use λ-expressions in C++.  We are brushing the surface of λ-expressions here, but it is enough for what
+we need.
+
+#### Simple λ-Expression Example
+
+We have already looked at the add example:
+
+```cpp
+// Create lambda expression
+auto add = [](int x , int y){ return x + y; };
+// Call the defined function
+auto x = add (10 , 12);
+// Display answer - should be 22
+cout << "10 + 12 = " << x << endl;
+```
+
+This is the simplest form of $\lambda$-expression in C++. We use `auto` so the compiler will work out the type.
 
 #### Function Objects
 
+Another method is to create a `function` object.  For this, we need to include the `functional` header:
+
+```cpp
+#include <functional>
+```
+
+We can then create a `function` object:
+
+```cpp
+// Create function object with same lambda expression
+function<int(int, int)> add_function = [](int x, int y){ return x + y; };
+// Call the function object
+x = add_function(20, 12);
+// Display the answer - should be 32
+cout << "20 + 12 = " << x << endl;
+```
+
+This is the same add example, except we are defining the type of the `function`.
+
 #### Fixed Values
+
+We already mentioned that we can pass fixed values within the square brackets `[ ]`:
+
+```cpp
+int a = 5;
+int b = 10;
+// Define the values passed to the function
+auto add_fixed = [a, b]{ return a + b; };
+// Call the function
+x = add_fixed();
+// Display the answer - should be 15
+cout << "5 + 10 = " << x << endl;
+```
+
+If we change the values of `a` and `b`, the output of `add_fixed` does not change. So, if we do the following:
+
+```cpp
+// Change the values of a and b
+a = 20; b = 30;
+// Call the fixed function again
+x = add_fixed();
+// Display the answer - will come out as 15
+cout << " 20 + 30 = " << x << endl;
+```
+
+The output of `add_fixed` will still be 15, not 50.
 
 #### Reference Values
 
+Although not a good practice, we can pass values to the function as references.  We can change the function definition:
+
+```cpp
+// Define the values passed to the function, but pass as a reference
+auto add_reference = [&a, &b]{ return a + b; };
+// Call the function
+x = add_reference();
+// Display the answer - should be 50
+cout << "20 + 30 = " << x << endl;
+// Change values of a and b
+a = 30;
+b = 5;
+// Call the reference based function again
+x = add_reference();
+// Display the answer - should be 35
+cout << "30 + 5 = " << x << endl;
+```
+
+Note the use of `&` to denote we are passing by reference. When we change the values of `a` and `b` now the output of the function is also changed.
+
 #### Complete Application
 
-## Lambda Expressions and Threads
+The complete λ-expression application is given below:
+
+```cpp
+#include <iostream>
+#include <functional>
+
+using namespace std;
+
+int main (int argc, char **argv)
+{
+    // Create lambda expression
+    auto add = [](int x, int y) { return x + y; };
+    // Call the defined function
+    auto x = add(10 , 12);
+    // Display answer - should be 22
+    cout << "10 + 12 = " << x << endl;
+
+    // Create function object with same lambda expression
+    function<int(int, int)> add_function = [](int x, int y) { return x + y; };
+    // Call the function object
+    x = add_function(20, 12);
+    // Display the answer - should be 32
+    cout << "20 + 12 = " << x << endl;
+
+    int a = 5;
+    int b = 10;
+    // Define the values passed to the function
+    auto add_fixed = [a, b] { return a + b; };
+    // Call the function
+    x = add_fixed();
+    // Display the answer - should be 15
+    cout << "5 + 10 = " << x << endl;
+
+    // Change values of a and b
+    a = 20;
+    b = 30;
+    // Call the fixed function again
+    x = add_fixed();
+    // Display the answer - will come out as 15
+    cout << "20 + 30 = " << x << endl;
+
+    // Define the values passed to the function , but pass as reference
+    auto add_reference = [&a, &b] { return a + b; };
+    // Call the function
+    x = add_reference();
+    // Display the answer - should be 50
+    cout << "20 + 30 = " << x << endl;
+
+    // Change the values of a and b
+    a = 30;
+    b = 5;
+    // Call the reference based function again
+    x = add_reference();
+    // Display the answer - should be 35
+    cout << "30 + 5 = " << x << endl;
+
+    return 0;
+}
+```
+
+The output is:
+
+```shell
+10 + 12 = 22
+20 + 12 = 32
+5 + 10 = 15
+20 + 30 = 15
+20 + 30 = 50
+30 + 5 = 35
+```
+
+## λ-Expressions and Threads
 
 ## Gathering Data
 

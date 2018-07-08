@@ -16,13 +16,13 @@ The aim of the first lab is to get you started with threads in C++.  We will sta
 
 Creating a thread in C++ is simple - we need to include the thread header file:
 
-```C++
+```cpp
 #include <thread>
 ```
 
 We then create a new thread object in our application, passing in the name of the function to execute:
 
-```C++
+```cpp
 thread t(hello_world);
 ```
 
@@ -30,7 +30,54 @@ This will create a new thread that will execute the function `hello world`. The 
 
 ### Waiting for a Thread to Complete
 
+When we launch a thread we want to wait for it to complete. To do this we use the `join` method on the `thread`.
+
+```cpp
+t.join();
+```
+
+This will pause the current execution until the joined `thread` completes.
+
 ### First Multi-threaded Example
+
+We can now create our first multi-threaded application.  This is a *Hello World* example illustrating the basics.
+
+```cpp
+#include <thread>
+#include <iostream>
+
+using namespace std ;
+
+/*
+This is the function called by the thread
+*/
+void hello_world()
+{
+    cout << "Hello from thread" << this_thread::get_id() << endl ;
+}
+
+int main(int argc, char **argv)
+{
+    // Create a new thread
+    thread t(hello_world);
+    // Wait for thread to finish (join it)
+    t.join();
+    // Return 0 (OK)
+    return 0;
+}
+```
+
+We use the following instruction:
+
+```cpp
+this_thread::get_id()
+```
+
+which gets the (operating system) assigned ID of the `thread` running.  Each time you run the application, you should get a different value.  The output of your application should be as follows:
+
+```shell
+Hello from thread 16196
+```
 
 ## Multiple Tasks
 

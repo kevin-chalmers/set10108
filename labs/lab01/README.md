@@ -506,15 +506,106 @@ It is that simple. For the rest of the module, it is up to you whether you use Î
 
 ## Gathering Data
 
+Throughout the module, we will gather data to analyse the performance of our applications.  The key metrics in parallel performance are *speed up* and *efficiency*. Our method will be to output timing data into a comma separated value (.csv) file. CSV files can be loaded into Excel, R or other data analysis tools, and thereby generate a chart. In our first application, we will get the average of 100 iterations of a simple task that will just spin the processor.
+
 ### Work Function
+
+Our work function is below:
+
+```cpp
+void work()
+{
+    // Do some spinning - no actual processing but will make the CPU work
+    int n = 0;
+    for (int i = 0; i < 1000000; ++i)
+        ++n;
+}
+```
+
+The work is to increment a value 1 million times. This won't take much time for the processor.
 
 ### Creating a File
 
+To create an output file in C++ we use the following:
+
+```cpp
+ofstream data("data.csv", ofstream::out);
+```
+
+An output file called `data.csv` will be created which we can write to.  Filestreams are just normal output streams like `cout`.
+
 ### Capturing Times
+
+The `system_clock` type allows time capture in C++. Timing requires the *start* and *end* of an experiment from which we calculate the *duration*.  Timing data will be in *nanoseconds* (ns).
+
+```cpp
+// Get start time
+auto start = system_clock::now();
+// ... do some work
+// Get end time
+auto end = system_clock::now();
+// Calculate total time
+auto total = end - start;
+// Output total time in ms to the file
+data << total.count() << endl;
+```
 
 ### Complete Application
 
+Our complete application is below:
+
+```cpp
+#include <thread>
+#include <chrono>
+#include <iostream>
+#include <fstream>
+
+using namespace std;
+using namespace std::chrono;
+
+void work ()
+{
+    // Do some spinning - no actual processing but will make the CPU work
+    int n = 0;
+    for (int i = 0; i < 1000000; ++i)
+        ++n;
+}
+
+int main(int argc, char **argv)
+{
+    // Create a new file
+    ofstream data("data.csv", ofstream::out);
+    // Weâ€™re going to gather 100 readings , so create a thread and join it 100 times
+    for (int i = 0; i < 100; ++i)
+    {
+        // Get start time
+        auto start = system_clock::now();
+        // Start thread
+        thread t (work);
+        t.join();
+        // Get end time
+        auto end = system_clock::now();
+        // Calculate the duration
+        auto total = end - start;
+        // Write to file
+        data << total.count() << endl;
+    }
+    // 100 iterations complete.
+    data.close();
+    return 0;
+}
+```
+
 ### Getting the Data
+
+Once the application is complete you will have a `.csv` file which you should open with Excel. Get the mean of the 100 stored values.  You also need to document the specification of your machine. This is important information. For example, the result from my test is 270000ns and hardware I ran the experiment on was:
+
+* **CPU** Intel i5-2500 @ 3.3GHz
+* **Memory** 8GB
+* **OS** Windows 10 64bit
+* **Compiler** MSVC 15
+
+As we progress through the module, we will find that the other pieces of information about your machine will become useful.
 
 ## Monte Carlo Pi
 

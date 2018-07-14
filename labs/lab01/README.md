@@ -633,9 +633,9 @@ As the square surrounding the circle as side lengths of 2π we can calculate the
 Suppose that `r=1`. If we pick a random point within the square, we can determine whether it is in the circle by calculating the distance of the point from the centre of the square. If this is 1 or less, the point is within the circle. If it is greater than 1, then it is in the square but not the circle. The ratio of total random points to ones in the circle allows us to approximate π. This is because:
 
 ```alg
-Area circle = πr<sup>2</sup>
-Area square = π4<sup>2</sup>
-Ratio = πr<sup>2</sup>/π4<sup>2</sup>
+Area circle = πr <sup>2</sup>
+Area square = π4 <sup>2</sup>
+Ratio = πr <sup>2</sup>/π4 <sup>2</sup>
 ```
 
 We can create an algorithm to approximate π as:

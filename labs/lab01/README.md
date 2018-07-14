@@ -609,7 +609,46 @@ As we progress through the module, we will find that the other pieces of informa
 
 ## Monte Carlo Pi
 
+Our first case study will approximate π using a Monte Carlo method. A Monte Carlo method uses random number to compute a value. Because we can increase the number of random values generated to improve the quality of the result we can scale the number of computations. This will allow us to perform a test that we can push our CPU.
+
 ### Theory
+
+The theory behind calculating π using a Monte Carlo method is best described using an image.
+
+![Monte Carlo π](img/Pi_30K.gif) **Sourced from Wikimedia Commons**
+
+
+The radius of the circle is defined as `r`. The area of a circle is calculated as:
+
+```alg
+πr<sup>2</sup>
+```
+
+As the square surrounding the circle as side lengths of 2π we can calculate the area of the square:
+
+```alg
+4r<sup>2</sup>
+```
+
+Suppose that `r=1`. If we pick a random point within the square, we can determine whether it is in the circle by calculating the distance of the point from the centre of the square. If this is 1 or less, the point is within the circle. If it is greater than 1, then it is in the square but not the circle. The ratio of total random points to ones in the circle allows us to approximate π. This is because:
+
+```alg
+Area circle = πr<sup>2</sup>
+Area square = π4<sup>2</sup>
+Ratio = πr<sup>2</sup>/π4<sup>2</sup>
+```
+
+We can create an algorithm to approximate π as:
+
+```alg
+attempts = N
+in_circle = M
+ratio = M/N
+π/4 ≈ M/N
+π ≈ 4 * M/N
+```
+
+Generating random points therefore allows an approximation of π. Points range from `[(0.0, 0.0), (1.0, 1.0)]`, and calculating the distance `(0, 0)` determines if the point is in the circle.
 
 ### Distribution of Random Numbers
 

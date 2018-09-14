@@ -652,14 +652,148 @@ Generating random points therefore allows an approximation of π. Points range f
 
 ### Distribution of Random Numbers
 
+Before looking at a C++ implementation of Monte Carlo $\pi$, we need to random number distributions. A distribution defines the type and range of values we get from a random engine. There are a few distribution types - here we will be use a [uniform real distribution](http://www.cplusplus.com/reference/random/uniform_real_distribution/).  We also require a range from 0.0 to 1.0.
+
+```cpp
+// Create a distribution
+uniform_real_distribution<double> distribution(0.0, 1.0);
+// Use this to get a random value from our random engine e
+auto x = distribution(e);
+```
+
 ### Monte Carlo Pi Algorithm
+
+Our algorithm implementation in C++ is below:
+
+```cpp
+void monte_carlo_pi(size_t iterations)
+{
+    // Seed with real random number if available
+    std::random_device r;
+    // Create random number generator
+    default_random_engine e(r());
+    // Create a distribution - we want doubles between 0.0 and 1.0
+    uniform_real_distribution<double> distribution(0.0, 1.0);
+
+    // Keep track of number of points in circle
+    unsigned int in_circle = 0;
+    // Iterate
+    for (size_t i = 0; i < iterations; ++i)
+    {
+        // Generate random point
+        auto x = distribution(e);
+        auto y = distribution(e);
+        // Get length of vector defined - use Pythagarous
+        auto length = sqrt((x * x) + (y * y));
+        // Check if in circle
+        if (length <= 1.0)
+            ++in_circle;
+    }
+    // Calculate pi
+    auto pi = (4.0 * in_circle) / static_cast<double>(iterations);
+}
+```
+
+Notice we are not returning the value for $\pi$ - you can print to test the accuracy. We will look at how we can get the result from a task in later tutorials.
 
 ### Main Application
 
+We are going to capture the amount of time it takes to perform $2^{24}$ iterations of the Monte Carlo $\pi$ calculation.  We are also going to spread the work across a varying number of threads based on the powers of 2.
+The following table will explain how this works.
+
+| **Number of Threads** | **Iterations** | **Iterations per Thread** |
+| --------------------- | -------------- | ------------------ |
+| $2^0=1$ | $2^{24}$ | $\frac{2^{24}}{2^0}=2^{24}$ |
+| $2^1=2$ | $2^{24}$ | $\frac{2^{24}}{2^1}=2^{23}$ |
+| $2^2=4$ | $2^{24}$ | $\frac{2^{24}}{2^2}=2^{22}$ |
+| $2^3=8$ | $2^{24}$ | $\frac{2^{24}}{2^3}=2^{21}$ |
+| $2^4=16$ | $2^{24}$ | $\frac{2^{24}}{2^4}=2^{20}$ |
+| $2^5=32$ | $2^{24}$ | $\frac{2^{24}}{2^5}=2^{19}$ |
+| $2^6=64$ | $2^{24}$ | $\frac{2^{24}}{2^6}=2^{18}$ |
+
+Using powers of 2 when performing computation experiments is the norm.  It also us to test multi-core configurations (e.g. dual, quad, etc.). This means we will test for the configuration for your own computer.
+
+The main application code is defined below:
+
+```cpp
+int main(int argc, char **argv)
+{
+    // Create data file
+    ofstream data("montecarlo.csv", ofstream::out);
+
+    for (size_t num_threads = 0; num_threads <= 6; ++num_threads)
+    {
+        auto total_threads = static_cast<unsigned int>(pow(2.0, num_threads));
+        // Write number of threads
+        cout << "Number of threads = " << total_threads << endl;
+        // Write number of threads to the file
+        data << "num_threads_" << total_threads;
+        // Now execute 100 iterations
+        for (size_t iters = 0; iters < 100; ++iters)
+        {
+            // Get the start time
+            auto start = system_clock::now();
+            // We need to create total_threads threads
+            vector<thread> threads;
+            for (size_t n = 0; n < total_threads; ++n)
+                // Working in base 2 to make things a bit easier
+                threads.push_back(thread(monte_carlo_pi, static_cast<unsigned int>(pow(2.0, 24.0 - num_threads))));
+            // Join the threads (wait for them to finish)
+            for (auto &t : threads)
+                t.join();
+            // Get the end time
+            auto end = system_clock::now();
+            // Get the total time
+            auto total = end - start;
+            // Convert to milliseconds and output to file
+            data << ", " << duration_cast<milliseconds>(total).count();
+        }
+        data << endl;
+    }
+    // Close the file
+    data.close();
+    return 0;
+}
+```
+
+You will need the relevant include files and using statements. Once you have run the application, you will get another `.csv` file.
+
 ### Results
+
+You should record your results and the hardware configuration you used. For example:
+
+| **Number of Threads** | **Iterations** | **Iterations per Thread** | **Time ms** |
+| ----- | ----- | ----- | -----|
+| $2^0=1$ | $2^{24}$ | $\frac{2^{24}}{2^0}=2^{24}$ | 91.32 |
+| $2^1=2$ | $2^{24}$ | $\frac{2^{24}}{2^1}=2^{23}$ | 45.8  |
+| $2^2=4$ | $2^{24}$ | $\frac{2^{24}}{2^2}=2^{22}$ | 35.96 |
+| $2^3=8$ | $2^{24}$ | $\frac{2^{24}}{2^3}=2^{21}$ | 33.64 |
+| $2^4=16$ | $2^{24}$ | $\frac{2^{24}}{2^4}=2^{20}$ | 31.07|
+| $2^5=32$ | $2^{24}$ | $\frac{2^{24}}{2^5}=2^{19}$ | 29.78|
+| $2^6=64$ | $2^{24}$ | $\frac{2^{24}}{2^6}=2^{18}$ | 30.92|
+
+Notice my best time levels out at around 4 to 8 threads. The processor used was a quad core. Notice as well that performance actually starts to drop as the number of threads increases. This is due to threads (in particular switching threads on cores) have an overhead. The more threads you create, the greater the overhead.
+
+We can also produce a bar chart to illustrate the results (e.g. via Excel).
+
+![Monte Carlo &pi; Results](img/monte-carlo-thread-results.png)
+
+**You are expected to gather timing results and produce tables and charts as shown in this tutorial.** You should keep a logbook of some form to do this.
 
 ## If you have time - User-level Threads with Boost.Fibers
 
+Boost provides user-level (i.e., lightweight) threads.  These provide faster context switching on a single core, although the scheduler can work with multiple cores.
+
+The Boost.Fibers API interface looks almost exactly the same as C++ threads.  Your task here is to try and replicate the experiments here using Boost.Fibers to see the difference in performance.  Details on Boost.Fibers is available [here](https://www.boost.org/doc/libs/1_67_0/libs/fiber/doc/html/index.html).
+
 ## If you have time - Using R to Analyse Data
 
-## Exercises
+Although Excel can produce reasonable charts, it is better to write a small R script that will extract the data, calculate the necessary metrics, and produce the charts.  If you have time, try and write this R script - it will make your life easier.
+
+Alternatively look into Python for the same purpose.
+
+## Reading
+
+The reading after each tutorial is very important. It will cement your understanding of the material covered thus far.
+
+This week, you should read chapters 1 and 2 of C++ Concurrency in Action.

@@ -792,6 +792,41 @@ Although Excel can produce reasonable charts, it is better to write a small R sc
 
 Alternatively look into Python for the same purpose.
 
+## Exercises
+
+These exercises are designed to test your understanding and capabilities
+in what we have covered so far. As such, they will take time to
+complete.
+
+1.  Create an application that will first generate 10 million random
+    numbers and store them in a vector. Your task is now to find the
+    maximum and minimum values in the vector. As with Monte Carlo $\pi$,
+    time the application using different thread configurations. You
+    should also determine some method to store the maximum and minimum
+    values and thus display it. As your first run will use one thread
+    you can test that each different configuration returns the correct
+    maximum and minimum.
+
+2.  Write an application that will multiply a matrix of dimensions
+    $1000 \times 1000$ by a vector with 1000 components. If you do not
+    remember how we perform a matrix-vector multiplication, remember
+    that each component of the resulting 1000 component vector is
+    calculated as follows (assuming 0-indexing):
+    $$y_i = \sum\limits_{j=0}^{999} a_{ij}x_j$$ If you are unsure about
+    how to do the calculation then do some research into matrix
+    multiplication.
+
+3.  Modify the Monte Carlo π test to use a $\lambda$ expression instead.
+    This is relatively easy once you understand $\lambda$ expressions.
+    Again, gather timing data as before and see if there is any
+    difference in performance.
+
+4.  Some of the timings you are gathering will sometimes come out at
+    0ms. A possible solution is the `high_resolution_clock` and taking
+    the timings in microseconds (abbreviated $\mu$s). Change the Monte
+    Carlo $\pi$ application to use these techniques to get a finer
+    grained analysis.
+
 ## Reading
 
 The reading after each tutorial is very important. It will cement your understanding of the material covered thus far.

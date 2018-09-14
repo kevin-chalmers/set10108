@@ -764,7 +764,7 @@ You should record your results and the hardware configuration you used. For exam
 
 | **Number of Threads** | **Iterations** | **Iterations per Thread** | **Time ms** |
 | ----- | ----- | ----- | -----|
-| $2^0=1$ | $2^{24}$ | $\frac{2^{24}}{2^0}=2^{24}$ | 91.32 |
+| \[2^0=1\] | $2^{24}$ | $\frac{2^{24}}{2^0}=2^{24}$ | 91.32 |
 | $2^1=2$ | $2^{24}$ | $\frac{2^{24}}{2^1}=2^{23}$ | 45.8  |
 | $2^2=4$ | $2^{24}$ | $\frac{2^{24}}{2^2}=2^{22}$ | 35.96 |
 | $2^3=8$ | $2^{24}$ | $\frac{2^{24}}{2^3}=2^{21}$ | 33.64 |

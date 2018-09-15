@@ -2,16 +2,6 @@
 
 The aim of the first lab is to get you started with threads in C++.  We will start with CMake in different programming environments.  Once setup, we will look at different methods of thread creation: functions and lambda expressions.  We will then examine data gathering to understand parallel performance, using the Monte Carlo Pi benchmark as an example.  Then for those of you with time we will look at user-level threads with Boost.Fiber and how to use R for data analysis.
 
-## Setting Up
-
-### Visual Studio
-
-### CLion
-
-### Command Line
-
-### Our Starting CMake File
-
 ## Starting a Thread
 
 Creating a thread in C++ is simple - we need to include the thread header file:
@@ -617,38 +607,15 @@ The theory behind calculating π using a Monte Carlo method is best described us
 
 ![Monte Carlo π](img/Pi_30K.gif) **Sourced from Wikimedia Commons**
 
+Suppose that the radius of the circle is 1. If we pick a random point within the square, we can determine whether it is in the circle by calculating the distance of the point from the centre of the square. If this is 1 or less, the point is within the circle. If it is greater than 1, then it is in the square but not the circle. The ratio of total random points to ones in the circle allows us to approximate π. This is because:
 
-The radius of the circle is defined as `r`. The area of a circle is calculated as:
-
-```alg
-πr<sup>2</sup>
-```
-
-As the square surrounding the circle as side lengths of 2π we can calculate the area of the square:
-
-```alg
-4r<sup>2</sup>
-```
-
-Suppose that `r=1`. If we pick a random point within the square, we can determine whether it is in the circle by calculating the distance of the point from the centre of the square. If this is 1 or less, the point is within the circle. If it is greater than 1, then it is in the square but not the circle. The ratio of total random points to ones in the circle allows us to approximate π. This is because:
-
-```alg
-Area circle = πr <sup>2</sup>
-Area square = π4 <sup>2</sup>
-Ratio = πr <sup>2</sup>/π4 <sup>2</sup>
-```
+![Ratio Area of Square to Circle](img/area-circle.png)
 
 We can create an algorithm to approximate π as:
 
-```alg
-attempts = N
-in_circle = M
-ratio = M/N
-π/4 ≈ M/N
-π ≈ 4 * M/N
-```
+![Monte Carlo &pi; Equation](img/monte-carlo-eq.png)
 
-Generating random points therefore allows an approximation of π. Points range from `[(0.0, 0.0), (1.0, 1.0)]`, and calculating the distance `(0, 0)` determines if the point is in the circle.
+Generating random points therefore allows an approximation of &pi;. Points range from `[(0.0, 0.0), (1.0, 1.0)]`, and calculating the distance `(0, 0)` determines if the point is in the circle.
 
 ### Distribution of Random Numbers
 
@@ -701,15 +668,7 @@ Notice we are not returning the value for $\pi$ - you can print to test the accu
 We are going to capture the amount of time it takes to perform $2^{24}$ iterations of the Monte Carlo $\pi$ calculation.  We are also going to spread the work across a varying number of threads based on the powers of 2.
 The following table will explain how this works.
 
-| **Number of Threads** | **Iterations** | **Iterations per Thread** |
-| --------------------- | -------------- | ------------------ |
-| $2^0=1$ | $2^{24}$ | $\frac{2^{24}}{2^0}=2^{24}$ |
-| $2^1=2$ | $2^{24}$ | $\frac{2^{24}}{2^1}=2^{23}$ |
-| $2^2=4$ | $2^{24}$ | $\frac{2^{24}}{2^2}=2^{22}$ |
-| $2^3=8$ | $2^{24}$ | $\frac{2^{24}}{2^3}=2^{21}$ |
-| $2^4=16$ | $2^{24}$ | $\frac{2^{24}}{2^4}=2^{20}$ |
-| $2^5=32$ | $2^{24}$ | $\frac{2^{24}}{2^5}=2^{19}$ |
-| $2^6=64$ | $2^{24}$ | $\frac{2^{24}}{2^6}=2^{18}$ |
+![Monte Carlo &pi; Configuration](img/monte-carlo-table.png)
 
 Using powers of 2 when performing computation experiments is the norm.  It also us to test multi-core configurations (e.g. dual, quad, etc.). This means we will test for the configuration for your own computer.
 
@@ -762,15 +721,7 @@ You will need the relevant include files and using statements. Once you have run
 
 You should record your results and the hardware configuration you used. For example:
 
-| **Number of Threads** | **Iterations** | **Iterations per Thread** | **Time ms** |
-| ----- | ----- | ----- | -----|
-| \[2^0=1\] | $2^{24}$ | $\frac{2^{24}}{2^0}=2^{24}$ | 91.32 |
-| $2^1=2$ | $2^{24}$ | $\frac{2^{24}}{2^1}=2^{23}$ | 45.8  |
-| $2^2=4$ | $2^{24}$ | $\frac{2^{24}}{2^2}=2^{22}$ | 35.96 |
-| $2^3=8$ | $2^{24}$ | $\frac{2^{24}}{2^3}=2^{21}$ | 33.64 |
-| $2^4=16$ | $2^{24}$ | $\frac{2^{24}}{2^4}=2^{20}$ | 31.07|
-| $2^5=32$ | $2^{24}$ | $\frac{2^{24}}{2^5}=2^{19}$ | 29.78|
-| $2^6=64$ | $2^{24}$ | $\frac{2^{24}}{2^6}=2^{18}$ | 30.92|
+![Monte Carlo &pi; Results](img/monte-carlo-results-table.png)
 
 Notice my best time levels out at around 4 to 8 threads. The processor used was a quad core. Notice as well that performance actually starts to drop as the number of threads increases. This is due to threads (in particular switching threads on cores) have an overhead. The more threads you create, the greater the overhead.
 
@@ -798,34 +749,15 @@ These exercises are designed to test your understanding and capabilities
 in what we have covered so far. As such, they will take time to
 complete.
 
-1.  Create an application that will first generate 10 million random
-    numbers and store them in a vector. Your task is now to find the
-    maximum and minimum values in the vector. As with Monte Carlo $\pi$,
-    time the application using different thread configurations. You
-    should also determine some method to store the maximum and minimum
-    values and thus display it. As your first run will use one thread
-    you can test that each different configuration returns the correct
-    maximum and minimum.
+1. Create an application that will first generate 10 million random numbers and store them in a vector. Your task is now to find the maximum and minimum values in the vector. As with Monte Carlo &pi;, time the application using different thread configurations. You should also determine some method to store the maximum and minimum values and thus display it. As your first run will use one thread you can test that each different configuration returns the correct maximum and minimum.
+2. Write an application that will multiply a matrix of dimensions 1000 * 1000 by a vector with 1000 components. If you do not remember how we perform a matrix-vector multiplication, remember that each component of the resulting 1000 component vector is calculated as follows (assuming 0-indexing):
 
-2.  Write an application that will multiply a matrix of dimensions
-    $1000 \times 1000$ by a vector with 1000 components. If you do not
-    remember how we perform a matrix-vector multiplication, remember
-    that each component of the resulting 1000 component vector is
-    calculated as follows (assuming 0-indexing):
-    $$y_i = \sum\limits_{j=0}^{999} a_{ij}x_j$$ If you are unsure about
-    how to do the calculation then do some research into matrix
-    multiplication.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;![Matrix Multiply Equation](img/matrix-multiply.png)
 
-3.  Modify the Monte Carlo π test to use a $\lambda$ expression instead.
-    This is relatively easy once you understand $\lambda$ expressions.
-    Again, gather timing data as before and see if there is any
-    difference in performance.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If you are unsure about how to do the calculation then do some research into matrix multiplication.
 
-4.  Some of the timings you are gathering will sometimes come out at
-    0ms. A possible solution is the `high_resolution_clock` and taking
-    the timings in microseconds (abbreviated $\mu$s). Change the Monte
-    Carlo $\pi$ application to use these techniques to get a finer
-    grained analysis.
+3. Modify the Monte Carlo π test to use a &lambda; expression instead. This is relatively easy once you understand &lambda; expressions. Again, gather timing data as before and see if there is any difference in performance.
+4. Some of the timings you are gathering will sometimes come out at 0ms. A possible solution is the `high_resolution_clock` and taking the timings in microseconds (abbreviated &mu;s). Change the Monte Carlo &pi; application to use these techniques to get a finer grained analysis.
 
 ## Reading
 

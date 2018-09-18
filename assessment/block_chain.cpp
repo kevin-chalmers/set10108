@@ -19,12 +19,7 @@ block::block(uint32_t index, const string &data)
 
 void block::mine_block(uint32_t difficulty) noexcept
 {
-    char cstr[difficulty + 1];
-    for (uint32_t i = 0; i < difficulty; ++i)
-        cstr[i] = '0';
-    cstr[difficulty] = '\0';
-
-    string str(cstr);
+    string str(difficulty, '0');
 
     auto start = system_clock::now();
 

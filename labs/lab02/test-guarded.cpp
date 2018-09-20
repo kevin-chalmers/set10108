@@ -6,8 +6,8 @@
 
 using namespace std;
 
-const unsigned int NUM_ITERATIONS = 1000000;
-const unsigned int NUM_THREADS = 4;
+constexpr unsigned int NUM_ITERATIONS = 1000000;
+constexpr unsigned int NUM_THREADS = 4;
 
 void task(shared_ptr<guarded> g)
 {

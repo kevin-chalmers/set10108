@@ -27,7 +27,7 @@ union v4
 };
 ```
 
-To exploit SIMD instructions, data needs to be *streamed* to the processor.  This is achieved via aligning memory correctly yo allow data to be read efficiently by the CPU.  Our first application will illustrate how we can align memory correctly in C++:
+To exploit SIMD instructions, data needs to be *streamed* to the processor.  This is achieved via aligning memory correctly yo allow data to be read efficiently by the CPU.  Our first application will illustrate how we can align memory correctly in C++.  The following is Microsoft specific:
 
 ```cpp
 int main(int argc, char **argv)
@@ -59,20 +59,20 @@ int main(int argc, char **argv)
         cout << x.a[i] << endl;
 
     // Create array of 100 floats, aligned to 4 bytes.
-    float *data = (float*)aligned_alloc(4, 100 * sizeof(float));
+    float *data = (float*)_aligned_malloc(100 * sizeof(float), 4);
     // Access just like an array
     cout << data[0] << endl;
 
     // Create an array of 100 128-bit values aligned to 16 bytes
-    v4 *big_data = (v4*)aligned_alloc(16, 100 * sizeof(v4));
+    v4 *big_data = (v4*)_aligned_malloc(100 * sizeof(v4), 16);
 
     // Access just like an array of __m128
     cout << big_data[0].a[0] << endl;
 
     // Free the data - ALWAYS REMEMBER TO FREE YOUR MEMORY
     // We are dealing at a C level here
-    free(data);
-    free(big_data);
+    _aligned_free(data);
+    _aligned_free(big_data);
 
     return 0;
 }
@@ -80,7 +80,9 @@ int main(int argc, char **argv)
 
 `alignas(N)` tells the C++ compiler how to align memory.  Here we say as a 16-byte alignment, meaning the CPU can read the data into a 128-bit (16-byte) register efficiently.
 
-`aligned_alloc` creates large blocks of aligned memory (`alloc` is short for allocation). The first parameter is the alignment size and the second parameter is the total number of bytes to allocate.  Any allocated memory must be freed using the `free` function to release the memory for reuse.
+`_aligned_malloc` creates large blocks of aligned memory (`alloc` is short for *memory allocation*). The first parameter is the alignment size and the second parameter is the total number of bytes to allocate.  Any allocated aligned memory must be freed using the `_aligned_free` function to release the memory for reuse.
+
+**Non-Microsoft compiler?** The C11 standard defined `aligned_alloc` which is the same as `_aligned_malloc` but *with the parameters reversed*.  `free` can be used instead of `_aligned_free`.  At present, Microsoft do not support this part of the C11 standard.
 
 Running this application will not do much - it will print out a couple of values. The point is to introduce to the methods of allocating memory aligned data.
 
@@ -142,48 +144,48 @@ int main(int argc, char **argv)
     // Add 1 million float values
     // First using floats
     {
-        float *d1 = (float*)aligned_alloc(4, sizeof(float) * 1000000);
-        float *d2 = (float*)aligned_alloc(4, sizeof(float) * 1000000);
+        float *d1 = (float*)_aligned_malloc(sizeof(float) * 1000000, 4);
+        float *d2 = (float*)_aligned_malloc(sizeof(float) * 1000000, 4);
         auto start = system_clock::now();
         for (size_t count = 0; count < 100; ++count)
         {
             for (size_t i = 0; i < 1000000; ++i)
                 d1[i] = d1[i] + d2[i];
         }
-        auto total = (system_clock::now() - start).count() / 100;
+        auto total = duration_cast<nanoseconds>((system_clock::now() - start)).count() / 100;
         cout << "float time: " << total << "ns" << endl;
-        free(d1);
-        free(d2);
+        _aligned_free(d1);
+        _aligned_free(d2);
     }
     // Now using _m128
     {
-        v4 *d1 = (v4*)aligned_alloc(16, sizeof(v4) * 500000);
-        v4 *d2 = (v4*)aligned_alloc(16, sizeof(v4) * 500000);
+        v4 *d1 = (v4*)_aligned_malloc(sizeof(v4) * 500000, 16);
+        v4 *d2 = (v4*)_aligned_malloc(sizeof(v4) * 500000, 16);
         auto start = system_clock::now();
         for (size_t count = 0; count < 100; ++count)
         {
             for (size_t i = 0; i < 500000; ++i)
                 d1[i].v = _mm_add_ps(d1[i].v, d2[i].v);
         }
-        auto total = (system_clock::now() - start).count() / 100;
+        auto total = duration_cast<nanoseconds>((system_clock::now() - start)).count() / 100;
         cout << "m128 time: " << total << "ns" << endl;
-        free(d1);
-        free(d2);
+        _aligned_free(d1);
+        _aligned_free(d2);
     }
     // Now using _m256
     {
-        v8 *d1 = (v8*)aligned_alloc(32, sizeof(v8) * 250000);
-        v8 *d2 = (v8*)aligned_alloc(32, sizeof(v8) * 250000);
+        v8 *d1 = (v8*)_aligned_malloc(sizeof(v8) * 250000, 32);
+        v8 *d2 = (v8*)_aligned_malloc(sizeof(v8) * 250000, 32);
         auto start = system_clock::now();
         for (size_t count = 0; count < 100; ++count)
         {
             for (size_t i = 0; i < 250000; ++i)
                 d1[i].v = _mm256_add_ps(d1[i].v, d2[i].v);
         }
-        auto total = (system_clock::now() - start).count() / 100;
+        auto total = duration_cast<nanoseconds>((system_clock::now() - start)).count() / 100;
         cout << "m256 time: " << total << "ns" << endl;
-        free(d1);
-        free(d2);
+        _aligned_free(d1);
+        _aligned_free(d2);
     }
 
     return 0;

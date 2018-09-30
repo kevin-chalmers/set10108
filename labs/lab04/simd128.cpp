@@ -39,20 +39,20 @@ int main(int argc, char **argv)
 	    cout << x.a[i] << endl;
 
     // Create array of 100 floats, aligned to 4 bytes.
-    float *data = (float*)aligned_alloc(4, 100 * sizeof(float));
+    float *data = (float*)_aligned_malloc(100 * sizeof(float), 4);
     // Access just like an array
 	cout << data[0] << endl;
 
     // Create an array of 100 128-bit values aligned to 16 bytes
-	v4 *big_data = (v4*)aligned_alloc(16, 100 * sizeof(v4));
+	v4 *big_data = (v4*)_aligned_malloc(100 * sizeof(v4), 16);
 
 	// Access just like an array of __m128
 	cout << big_data[0].a[0] << endl;
 
 	// Free the data - ALWAYS REMEMBER TO FREE YOUR MEMORY
 	// We are dealing at a C level here
-	free(data);
-	free(big_data);
+	_aligned_free(data);
+	_aligned_free(big_data);
 
     return 0;
 }

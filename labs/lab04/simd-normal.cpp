@@ -68,10 +68,12 @@ void check_results(v4 *data, v4 *result)
 
 int main(int argc, char **argv)
 {
-    v4 *data = (v4*)aligned_alloc(16, sizeof(v4) * 1000000);
-    v4 *result = (v4*)aligned_alloc(16, sizeof(v4) * 1000000);
+    v4 *data = (v4*)_aligned_malloc(sizeof(v4) * 1000000, 16);
+    v4 *result = (v4*)_aligned_malloc(sizeof(v4) * 1000000, 16);
     generate_data(data, 1000000);
     normalise_vectors(data, result, 1000000);
     check_results(data, result);
+    _aligned_free(data);
+    _aligned_free(result);
     return 0;
 }

@@ -1,10 +1,10 @@
 # Distributed Parallelism with MPI
 
-For the next two practicals it might be useful to work with a partner so you can get work on the distributed work we are undertaking. There is quite a bit of setup to do in this practical, so take your time and ensure everything is done correctly.
+For the next two practicals it might be useful to work with a partner so you can get work on the distributed work we are undertaking. There is quite a bit of setup to do in this practical, so take your time and ensure everything works correctly.
 
 ## Installing MPI
 
-We are going to use Microsoft's HPC SDK to support our MPI work. To do this you need the following three items installed:
+We are going to use Microsoft's HPC SDK to support our MPI work. To do this you need to install the following three items:
 
 **NOW REPLACED BY 2016**
 
@@ -12,11 +12,11 @@ We are going to use Microsoft's HPC SDK to support our MPI work. To do this you 
 -   Microsoft HPC Pack 2012 SDK
 -   Microsoft HPC Pack 2012 MS-MPI Redistributable Pack
 
-You will need to install these on every machine you plan to use in your application. You will also need to add the relevant include and library folders to your project - these will be found in the **Program Files** folder. The library that you need to link against is called `msmpi.lib`.
+You need to install these on every machine you plan to use in your application. You will also need to add the relevant include and library folders to your project - these will be found in the **Program Files** folder. The library that you need to link against is called `msmpi.lib`.
 
 ## First MPI Application
 
-Our first application will just initialise MPI, display some local information, and then shutdown.
+Our first application will initialise MPI, display some local information, and shutdown.
 
 ```cpp
 #include <iostream>
@@ -58,17 +58,17 @@ int main()
 
 The methods of interest are `MPI_Init` (initialises MPI), `MPI_Comm_size` (gets the number of processes in the application), `MPI_Comm_rank` (gets the ID of this process) and `MPI_Finalize` (shuts down MPI).
 
-At the moment you should just build this application - running an MPI application takes a bit more work.
+At the moment you should just check the application builds - running an MPI application takes a bit more work.
 
 ## Running an MPI Application
 
-You will need to open a command prompt in the directory where your built application is. Once you have done this, you can run the following command to execute the application locally in parallel:
+You need a command prompt in the directory where you built your application.  Run the following command to execute the application on the local machine in parallel:
 
 ```shell
 mpiexec /np 4 "exe_name.exe"
 ```
 
-Making sure to use the name of your application. The `/np` denotes the number of processes to use (here I use 4 - the number of logical cores on my machine). Running this command will give you an output similar to:
+Make sure to use the name of your application. `/np` denotes the number of processes to create. The output is similar to:
 
 ```shell
 Number of processors = 4
@@ -87,7 +87,7 @@ Running on = kevin-ultrabook
 
 ## Using a Remote Host
 
-Running an MPI application in this method is all well and good, but we are not really doing any distributed parallelism. What we want to do is use one or more remote machines to do our processing. First you will need to find the IP address of the machine you want to use as the remote node. We do this using the `ipconfig` command:
+We are not doing any distributed parallelism yet.  We want to use one or more remote machines to do our processing.  First you will need to find the IP address of the remote machine using `ipconfig`:
 
 `ipconfig`
 
@@ -103,22 +103,21 @@ Wireless LAN adapter Wi-Fi:
    Default Gateway . . . . . . . . . : 146.176.132.1
 ```
 
-The value you want is the IPv4 Address - 146.176.135.164 above. Next you want to run the following command on the remote machine:
+The value you want is the IPv4 Address - `146.176.135.164` above.  Next you want to run the following command on the remote machine:
 
 `smpd -d`
 
-This is called a **Single-Program Multiple-Data** task. It will listen on the machine and wait for us to allocate a job. To do this, we run `mpiexec` with a few more commands:
+It will listen on the machine and wait for us to allocate a job. We run `mpiexec` with a few more commands:
 
 `mpiexec /np 4 /host <ip-address> <application>`
 
-We now tell MPI which host to run on (we can also define multiple hosts). You will also need to copy the application to the other machine. Running this version will give a similar output to before.
+We tell MPI which host to run on (we can also define multiple hosts).  You will need to copy the application to the other machine. Running this version will give a similar output to before.
 
 It is worth at this point to look at the different flags for the `mpiexec`. You can find these [here](https://docs.microsoft.com/en-us/powershell/high-performance-computing/mpiexec?view=hpc16-ps).
 
 ## Sending and Receiving
 
-The next few short examples will look at the different methods for communication. First of all we will use the standard send and receive
-messages.
+The next few examples will examine different methods for communication.  First we will use standard send and receive.
 
 ```cpp
 const unsigned int MAX_STRING = 100;
@@ -174,11 +173,11 @@ int main()
 }
 ```
 
-Here we are using the process rank to determine which process does what. The process with rank 0 we consider the main process, and its job is to receive messages (lines 32 to 45). Each other process will just send a message to the main process (lines 21 to 31).
+We use the process rank to determine the behaviour of a process.  The process with rank `0` is the main process.  It will receive messages.  Other processes will send to the main process.
 
-Here we are using two new commands:
+We are using two new commands:
 
-- `MPI_Send` requires the data to be sent, the size of data (we make sure we send an extra byte for a string -- the null terminator), the type of data, the destination (0 -- the main process), a tag (we will not be using tags), and the communicator.
+- `MPI_Send` requires the data to be sent, the size of data (we make sure we send an extra byte for a string - *the null terminator*), the type of data, the destination (`0` - the main process), a tag (we will not be using tags), and the communicator.
 - `MPI_Recv` requires a buffer to store the message, the maximum size of the buffer, the process to receive from, the tag, the communicator to use, and status conditions.
 
 Running this application will give you an output similar to:
@@ -190,11 +189,11 @@ Greetings from process 2 of 4!
 Greetings from process 3 of 4!
 ```
 
-There are a number of different data types MPI can use beyond `MPI_CHAR` - the Introduction to Parallel Programming book will explain these further.
+There are data types beyond `MPI_CHAR` MPI can use.  The *Introduction to Parallel Programming* book will explain these further.
 
 ## Map-Reduce
 
-Another approach to communication we can use is map-reduce. For this you will have to use a Monte-Carlo &pi; application:
+Another approach to communication is map-reduce. For this you will build a Monte-Carlo &pi; application:
 
 ```cpp
 double local_sum, global_sum;
@@ -237,9 +236,9 @@ Pi=3.14652345655735
 
 ## Scatter-Gather
 
-Scatter-gather involves us taking an array of data and distributing it evenly amongst the processes. Gathering involves us gathering the results back again at the end.
+Scatter-gather involves taking an array of data and distributing it evenly amongst the processes. Gathering involves collecting the results back again at the end.
 
-For scatter-gather we are going to implement our vector normalization application. You will need the two helper to generate and normalize data.
+For scatter-gather we will implement a vector normalization application. You need the two helper functions to generate and normalize data.
 
 ```cpp
 // Randomly generate vector values
@@ -272,7 +271,7 @@ void normalise_vector(vector<float> &data)
 }
 ```
 
-Our main application just needs to call scatter, normalize, gather.
+Our main application calls scatter, normalize, gather.
 
 ```cpp
 // Vector containing values to normalise
@@ -313,7 +312,7 @@ if (my_rank == 0)
 }
 ```
 
-The `MPI_Scatter` command has the following parameters:
+`MPI_Scatter` has the following parameters:
 
 - The data to scatter - only relevant on the root process (`data`).
 - The count of data to send to each process (`SIZE / num_procs`).
@@ -324,7 +323,7 @@ The `MPI_Scatter` command has the following parameters:
 - The root process (sender) (`0`).
 - The communicator used (`MPI_COMM_WORLD`).
 
-`MPI_Gather` is essentially this in reverse:
+`MPI_Gather` is essentially `MPI_Scatter` in reverse:
 
 - The local data to send (`my_data`).
 - The count of data to send from each process (`SIZE / num_procs`).
@@ -335,7 +334,7 @@ The `MPI_Scatter` command has the following parameters:
 - The root process (gatherer) (`0`).
 - The communicator used (`MPI_COMM_WORLD`).
 
-Running this application will provide the output shown:
+Running will provide the following output:
 
 ```shell
 <0.47411, 0.499097, 0.318984, 0.651438>
@@ -354,7 +353,7 @@ You can check to see if these vectors are normalised.
 
 ## Broadcast
 
-The final communication type we will look at is broadcast. Broadcasting just allows us to send a message from one source to all processes on the communicator.
+The final communication type we will look at is broadcast.  Broadcasting allows us to send a message from one source to all processes on the communicator.
 
 ```cpp
 // Check if main process
@@ -375,7 +374,7 @@ else
 
 `MPI_Bcast` takes the following parameters:
 
-- Data to broadcast (sender sends, receiver reads into this data) ('data`).
+- Data to broadcast (sender sends, receiver reads into this data) (`data`).
 - Count of data to send / receive) (`100`).
 - Data type sent / received (`MPI_CHAR`).
 - Root node (`0`).
@@ -383,6 +382,6 @@ else
 
 ## Exercises
 
-1.  As always you should be taking timings of your applications
-2.  The Mandelbrot is quite an interesting application to distribute. In particular you will find that our implementation allows some parts to be processed quickly, and other parts slowly. You should try and divide the work so that you can optimise performance.
-3.  Try and get an application that works across a number of hosts. Try four machines in the games lab (16 processes in total). Again gather timings. Mandelbrot is another good application here.
+1. As always you should be taking timings of your applications.
+2. The Mandelbrot is quite an interesting application to distribute.  In particular you will find that our implementation allows some parts to be processed quickly, and other parts slowly.  You should try and divide the work so that you can optimise performance.
+3. Try and get an application that works across a number of hosts. Try four machines in the games lab (16 processes in total). Again gather timings. Mandelbrot is another good application here.

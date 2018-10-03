@@ -1,10 +1,10 @@
 # More MPI
 
-Our second tutorial on MPI will focus on particular examples of using MPI from our previous work. We will just focus on the examples rather than go into any new MPI as such.
+This will focus on MPI examples from previous labs.  Focus will be on the examples rather than new MPI commands.
 
 ## Mandelbrot
 
-For Mandelbrot our task is quite easy - the implementation we had was designed to run using rank based execution. We just need to modify it to use MPI ranks.
+The previous implementation ran using rank based execution. We just need to modify the previous one to use MPI ranks.
 
 ```cpp
 // Broadcast dimension around the workers
@@ -34,13 +34,11 @@ MPI_Gather(&res[0], res.size(), MPI_FLOAT, &data[0], res.size(), MPI_FLOAT, 0, M
 // Save image..
 ```
 
-We use gather here (line 23) to gather the final results. This is the point where the results are gather back to the host machine.
+We use gather to collect the final result.
 
 ## Parallel Sort
 
-For parallel sort we have to do quite a lot more work to get things to work.
-
-The parallel sort we used was something called an odd-even sort. This works in a number of phases that requires sharing between processes. The general algorithm is as follows:
+The parallel sort we used is an [odd-even sort](https://en.wikipedia.org/wiki/Odd%E2%80%93even_sort). This works in phases that require sharing between processes. The algorithm is:
 
 1. Sort local data
 2. For number of phases
@@ -48,7 +46,7 @@ The parallel sort we used was something called an odd-even sort. This works in a
    2. Merge
 3. Gather results
 
-Because of this we have a number of new operations we have to define.  First, let us define two merge methods - one to merge at the top of the list and one at the bottom.
+First, we define two merge methods - one to merge at the top of the list and one at the bottom.
 
 ```cpp
 // Merges the largest n values in local_data and temp_b into temp_c
@@ -104,7 +102,7 @@ void merge_low(vector<unsigned int> &local_data, vector<unsigned int> &temp_b, v
 }
 ```
 
-We call these merges during an odd-even iteration where we exchange data between partners.
+We call `merge_high` and `merge_low` during an odd-even iteration where we exchange data between partners.
 
 ```cpp
 void odd_even_iter(vector<unsigned int> &local_data, vector<unsigned int> &temp_b, vector<unsigned int> &temp_c, unsigned int phase, int even_partner, int odd_partner, unsigned int my_rank, unsigned int num_procs)
@@ -141,9 +139,9 @@ void odd_even_iter(vector<unsigned int> &local_data, vector<unsigned int> &temp_
 }
 ```
 
-Depending on the phase and whether we have a partner to the left or right, we exchange data accordingly. We then merge the data with our results, resulting in us having either the sorted upper portion of the two processes data or the sorted lower portion. Eventually each process will end up with its relevant sorted portion which we can send back to the main process.
+Depending on the phase and if the process has a partner to the left or right, the process exchanges data.  The process merges this data with its current results, resulting in the process having either the sorted upper portion of two process's or the sorted lower portion of two process's data.  Eventually, each process will have its sorted portion which can be sent back to the main process.
 
-The sort method itself is below. It merely sorts the local data section before performing the necessary number of phases (which is equal to the number of processes involved).
+The sort method is below. It sorts the local data section before performing the required number of phases (which is equal to the number of processes involved).
 
 ```cpp
 // Odd-even sort
@@ -183,7 +181,7 @@ void odd_even_sort(vector<unsigned int> &local_data, unsigned int my_rank, unsig
 }
 ```
 
-The sort and phases are at the bottom of the method. All we need is to call the sort method after scattering out the data. We then gather the data at the end.
+The sort and phases are at the bottom of the method.  We call the sort method after scattering out the data and then gather the data at the end.
 
 ```cpp
 // Data to sort
@@ -213,7 +211,7 @@ if (my_rank == 0)
         cout << data[i] << endl;
 ```
 
-Running this application will give you the output:
+Running this application will give:
 
 ```shell
 ...
@@ -229,7 +227,7 @@ Running this application will give you the output:
 
 ## Trapezoidal Rule
 
-For the trapezoidal rule we will use a barrier to synchronise our work.
+For the trapezoidal rule example we will use a barrier to synchronise between processes.
 
 ```cpp
 // Sync
@@ -259,11 +257,11 @@ Area under curve: 1.87253e-007
 
 ## Performance Evaluation of MPI
 
-We will now look at a how we can go about measuring latency and bandwidth using MPI. These values can be useful if you are undertaking any serious distribution of tasks and data communication. However, you will likely find that the stated network speed is what we hit.
+We will now look at a how we measure latency and bandwidth using MPI.  These values are essential if you undertake any serious distribution of tasks and data communication.  However, you wil probably find that the stated network speed is what we get in a lab environment.
 
 ### Measuring Latency
 
-For latency all you need is the application below:
+For latency the application below:
 
 ```cpp
 // Perform 100 timings
@@ -319,9 +317,9 @@ You will need to run this application across two machines to get a latency time.
 
 ### Measuring Bandwidth
 
-For bandwidth you just need to change the latency application so that it has bigger data sizes. Use powers of two as normal, and range from approximately 1K to 1MB. You will have to convert from the time taken to send the message to the actual MBit/s.
+For bandwidth you change the latency application so that it uses bigger data sizes. Use powers of two as normal, and range from approximately 1K (1024 bytes) to 1MB.  You will have to convert from the time taken to send the message to the actual MBit/s.
 
-You should also measure broadcast to see the performance there as well. **REMEMBER** - create the charts and look at the performance. You should be able to predict the performance of an application purely by sequential computation time plus communication time.
+You should measure broadcast to see the performance. **REMEMBER** - create the charts and look at the performance. You should be able to predict the performance of an application purely by sequential computation time plus communication time.
 
 ## Exercises
 

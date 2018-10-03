@@ -323,10 +323,10 @@ You should measure broadcast to see the performance. **REMEMBER** - create the c
 
 ## Exercises
 
-1. Time the Mandelbrot. Take into account the data transmission time.  Try and optimise the application as much as possible and split across a number of nodes. Also try different data sizes to analyse performance.
-2. Now do the same with parallel sort. There is more data exchanges happening here so you will need to think about a number of I/O stages taking place.
-3. For the trapezoidal rule you will probably want to seriously increase the number of iterations to get any reasonable idea of timings.
-4. Test the latency and the bandwidth of the Games Lab. Does it meet your expectations? Take these values into account and start to estimate the probable performance of Mandelbrot and parallel sort.
+1. Time the Mandelbrot.  Take into account the data transmission time.  Try and optimise the application and split across a number of nodes. Also try different data sizes to analyse performance.
+2. Now do the same with parallel sort. There are more data exchanges happening so you will need to think about a number of I/O stages taking place.
+3. For the trapezoidal rule you will want to greatly increase the number of iterations to get an idea of execution time.
+4. Test the latency and the bandwidth of the lab. Does it meet your expectations? Take these values into account and start to estimate the probable performance of Mandelbrot and parallel sort.
 
 ## Reading
 

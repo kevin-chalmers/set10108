@@ -162,7 +162,7 @@ We are now going to look at how we have a basic method of setting up OpenCL and 
 
 The kernel we are using is below.  You should save this in a file called `kernel.cl`.
 
-```cl
+```opencl
 __kernel void vecadd(__global int *A, __global int *B, __global int *C)
 {
     // Get the work item's unique ID
@@ -172,31 +172,17 @@ __kernel void vecadd(__global int *A, __global int *B, __global int *C)
 }
 ```
 
-We will look at this code in a bit of detail. First, if our function is
-a kernel we use the keyword `__kernel` at the start of the declaration.
-Kernels do not return values, so our return value is `void`.
+We will look at this code in a bit of detail. First, if our function is a kernel we use the keyword `__kernel` at the start of the declaration. Kernels do not return values, so our return value is `void`.
 
-The parameters for our kernel all are declared as `__global`. This means
-that they are accessible to all the cores when the kernel executes -- it
-is global memory. We declare these as pointers as they will be blocks of
-memory that we will be accessing and writing to.
+The parameters for our kernel all are declared as `__global`. This means that they are accessible to all the cores when the kernel executes - it is global memory. We declare these as pointers as they will be blocks of memory that we will be accessing and writing to.
 
-Our kernel is adding two vectors - or two arrays of a particular size
-(we will add two 2048 element vectors together). The `get_global_id`
-function allows us to get the index of the current executing thread. A
-thread can have various dimensions for the index - so we can get the
-`id` for 0, 1, 2, etc. We can also get the local id for work groups. As
-our kernel adds two 1D vectors, we only need to use the 0 dimension.
+Our kernel is adding two vectors - or two arrays of a particular size (we will add two 2048 element vectors together). The `get_global_id` function allows us to get the index of the current executing thread. A thread can have various dimensions for the index - so we can get the `id` for 0, 1, 2, etc. We can also get the local id for work groups. As our kernel adds two 1D vectors, we only need to use the 0 dimension.
 
-The final line of the kernel just stores the value. It is a standard
-line of code.
+The final line of the kernel just stores the value. It is a standard line of code.
 
-To load a kernel, we use
-Listing [\[lst:opencl-load\]](#lst:opencl-load){reference-type="ref"
-reference="lst:opencl-load"}.
+To load a kernel, we use:.
 
-\lstset{language=C++}
-``` {#lst:opencl-load caption="Loading an OpenCL Kernel" label="lst:opencl-load"}
+```cpp
 // Loads an OpenCL program
 cl_program load_program(const string &filename, cl_context &context, cl_device_id &device, cl_int num_devices)
 {
@@ -235,8 +221,7 @@ cl_program load_program(const string &filename, cl_context &context, cl_device_i
 }
 ```
 
-This method works much how we would load a shader. We read in the file
-contents (lines 9 to 14), and then create a `cl_program` object (line
+This method works much how we would load a shader. We read in the file contents (lines 9 to 14), and then create a `cl_program` object (line
 17) and build it (line 19). If the build fails, we print out the build
 log (lines 22 to 32).
 

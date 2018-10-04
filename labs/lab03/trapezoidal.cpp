@@ -34,8 +34,9 @@ void trap(function<double(double)> f, double start, double end, size_t iteration
         // Add to current result
         my_result += f(x);
     }
-    // Multiply the result by the slice size
-    my_result *= slice_size;
+    
+    // Multiply the result by the slice size and divide by 2
+    my_result *= slice_size / 2;
 
     // Critical section - add to the shared data
 #pragma omp critical

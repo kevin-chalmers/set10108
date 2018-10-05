@@ -256,118 +256,28 @@ int main(int argc, char **argv)
 
 **TODO: Add explanation**
 
-Running and Getting Results from OpenCL Kernels
------------------------------------------------
+At the moment we are only interested in some of these parameters. These are:
 
-We are finally ready to run our OpenCL kernel. To do this we need to
-define a new piece of information - the dimensions of the work. In our
-instance we have a single dimension arrays with elements items. We can
-therefore set up our work size as shown in
-Listing [\[lst:opencl-work-dim\]](#lst:opencl-work-dim){reference-type="ref"
-reference="lst:opencl-work-dim"}.
+- `kernel` the kernel we are executing.
+- `NullRange` the number of dimensions for the work.
+- `global` the number of elements per dimension.
 
-``` {#lst:opencl-work-dim caption="Defining OpenCL Work Dimensions" label="lst:opencl-work-dim"}
-// Configure the work dimensions - 1D of elements
-array<size_t, 1> global_work_size = { elements };
+We will look at some of the other parameters as we work through the rest of the module. Finally we need to copy our data back from the kernel at the end. We do this as follows:
+
+- `bufC` the buffer we are reading from.
+- `CL_TRUE` we will wait for the read to complete.
+- `0` the offset of the buffer to read from.
+- `DATA_SIZE` the amount of data to read from the buffer.
+- `C` pointer to the host memory to copy the device buffer to.
+
+Now all we want to do is validate that the data read back is correct. We can do this using the following code:
+
+Running this application will provide:
+
+```shell
+Intel(R) HD Graphics IvyBridge M GT2
+Finished
 ```
-
-We can now run our kernel. We do this in
-Listing [\[lst:opencl-enqueue\]](#lst:opencl-enqueue){reference-type="ref"
-reference="lst:opencl-enqueue"}.
-
-``` {#lst:opencl-enqueue caption="Enqueuing a OpenCL Kernel for Execution" label="lst:opencl-enqueue"}
-// Enqueue the kernel for execution
-status = clEnqueueNDRangeKernel(cmd_queue, kernel, 1, nullptr, global_work_size.data(), nullptr, 0, nullptr, nullptr);
-```
-
-At the moment we are only interested in some of these parameters. These
-are:
-
-`cmd_queue`
-
-:   the command queue we are using to enqueue the work
-
-`kernel`
-
-:   the kernel we are executing
-
-`1`
-
-:   the number of dimensions for the work
-
-`global_work_size.data()`
-
-:   the number of elements per dimension
-
-We will look at some of the other parameters as we work through the rest
-of the module. Finally we need to copy our data back from the kernel at
-the end. We do this as follows:
-
-``` {#lst:opencl-read caption="Reading Results Back from GPU Memory in OpenCL" label="lst:opencl-read"}
-// Read the output buffer from the GPU to main memory
-clEnqueueReadBuffer(cmd_queue, buffer_C, CL_TRUE, 0, data_size, C.data(), 0, nullptr, nullptr);
-```
-
-Again we are only interested in a few parameters:
-
-`cmd_queue`
-
-:   the command queue
-
-`buffer_C`
-
-:   the buffer we are reading from
-
-`CL_TRUE`
-
-:   we will wait for the read to complete
-
-`0`
-
-:   the offset of the buffer to read from
-
-`data_size`
-
-:   the amount of data to read from the buffer
-
-`C.data()`
-
-:   pointer to the host memory to copy the device buffer to
-
-Now all we want to do is validate that the data read back is correct. We
-can do this using the following code:
-
-``` {#lst:opencl-verify caption="Verifying OpenCL Results" label="lst:opencl-verify"}
-// Verify the output
-auto result = true;
-int i = 0;
-// Iterate through each value in result array
-for (auto &e : C)
-{
-    // Check value
-    if (e != i + i)
-    {
-        result = false;
-        break;
-    }
-    ++i;
-}
-
-// Check if result is true and display accordingly
-if (result)
-    cout << "Output is correct" << endl;
-else
-    cout << "Output is incorrect" << endl;
-```
-
-Running this application will provide the output shown in
-Figure [1.2](#fig:opencl-output){reference-type="ref"
-reference="fig:opencl-output"}.
-
-\centering
-![Output from OpenCL
-Application[]{label="fig:opencl-output"}](opencl-output){#fig:opencl-output
-width="\textwidth"}
 
 We can break down our application as follows:
 
@@ -380,21 +290,14 @@ We can break down our application as follows:
 7. Copy device memory back to host to get the results.
 8. Clean up resources.
 
-This will be our quite standard approach to working with OpenCL. We
-might iterate through some of these stages (running kernels and setting
-/ getting results), but typically the process is the same.
+This will be our quite standard approach to working with OpenCL. We might iterate through some of these stages (running kernels and setting / getting results), but typically the process is the same.
 
-Matrix Multiplication
----------------------
+## Matrix Multiplication
 
-This is more of an exercise than a straight tutorial. The kernel we are
-using is given in
-Listing [\[lst:opencl-matrix-mult\]](#lst:opencl-matrix-mult){reference-type="ref"
-reference="lst:opencl-matrix-mult"}.
+This is more of an exercise than a straight tutorial. The kernel we are using is given is:
 
-\lstset{language=[OpenCL]C}
-``` {#lst:opencl-matrix-mult caption="OpenCL Matrix Multiplication Kernel" label="lst:opencl-matrix-mult"}
-__kernel void simply_multiply(__global float *output_C, unsigned int width_A, unsigned int height_A, unsigned int width_B, unsigned int height_B, __global float *input_A, __global float *input_B)
+```opencl
+__kernel void simple_multiply(__global float *output_C, unsigned int width_A, unsigned int height_A, unsigned int width_B, unsigned int height_B, __global float *input_A, __global float *input_B)
 {
     // Get global position in Y direction
     unsigned int row = get_global_id(1);

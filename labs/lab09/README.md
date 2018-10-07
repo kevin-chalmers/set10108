@@ -1,16 +1,16 @@
 # GPU Programming Examples
 
-In this unit we are going to look at some GPU samples. We will look at OpenCL and CUDA examples where possible. The general approaches are the same. We will start by looking at some of the problems we have already looked at, before moving onto some other ideas. Most of these examples will be only briefly discussed, as you should be able to implement the necessary applications by now. You should also be taking timings to compare performance with sequential, multithreaded, MPI, and other solutions.
+In this unit we are going to look at some GPU samples.  We use both OpenCL and CUDA where possible. the general approaches being the same. We will look at problems already looked at.  Most of these examples will be only briefly discussed, as you should be able to implement the necessary applications by now. You should also be taking timings to compare performance with sequential, multithreaded, MPI, and other solutions.
 
 ## Monte Carlo &pi;
 
-Monte Carlo &pi; was our first problem examined, so you should have a good understanding of the principle by now. We will look at one OpenCL and a number of CUDA solutions. OpenCL can handle most of the CUDA approaches as well, so you can implement these too if you wish.
+Monte Carlo &pi; was our first problem examined, so you should have a good understanding of the principle by now.  We will look at one OpenCL and a number of CUDA solutions.  OpenCL can handle most of the CUDA approaches as well, so you can implement these too if you wish.
 
 ### OpenCL Monte Carlo &pi;
 
-For this application you will have to generate some random values and pass them to the GPU. OpenCL comes with a type that can be used to represent a 2D position in space - `float2`. This is the type used in the kernel. For our main application, the type is `cl_float2`. The general approach we are taking is as follows:
+For this application you will have to generate some random values and pass them to the GPU.  OpenCL comes with a type that can be used to represent a 2D position on a plane - `float2`.  This is the type used in the kernel. For our main application, the type is `cl_float2`. The approach we are taking is:
 
-1. Generate random points on CPU - one point for each thread.
+1. Generate random points on the CPU - one point for each thread.
 2. Allocate memory for points and a result value (0 or 1) for each thread.
 3. Copy points to GPU.
 4. Run kernel.
@@ -18,7 +18,13 @@ For this application you will have to generate some random values and pass them 
 6. Sum results.
 7. Calculate &pi;
 
-You are only provided with the kernel.  It is up to you to implement the necessary main application.
+We will introduce a new idea here - that of `__local` memory.  `__local` memory is memory shared between a work group, and is thus closer to the processing units than `__global`.  Closer memory means faster performance.  We will use local memory to sum each group, then return a smaller number of global results.  This could improve performance - you should measure the application to determine the affect of different work group sizes.  To set local memory, we only provide a size:
+
+```cpp
+kernel.setArg(1, GROUP_SIZE * sizeof(char), nullptr);
+```
+
+The kernel is below.  You should try to implement the necessary main application.
 
 ```opencl
 __kernel void monte_carlo_pi(__global float2 *points, __local char *local_results, __global int *global_results)
@@ -58,11 +64,11 @@ __kernel void monte_carlo_pi(__global float2 *points, __local char *local_result
 
 ### CUDA Monte Carlo &pi;
 
-For CUDA, we will look at a few different approaches which allow us to examine potential performance gains. We will implement the same solution as OpenCL first. Then we will look at a solution using a `for` loop within a kernel, generating random values using CUDA, and finally summing on the GPU rather than the CPU.
+For CUDA, we will look at a different approaches which allow us to examine potential performance gains.  The basic solution is first.
 
 #### Standard Approach
 
-Our standard approach follows the same method as we undertook for OpenCL. Therefore, the kernel is just provided.
+The kernel is similar to our OpenMP sample:
 
 ```cuda
 __global__ void monte_carlo_pi(const float2 *points, char *results)
@@ -82,11 +88,11 @@ __global__ void monte_carlo_pi(const float2 *points, char *results)
 }
 ```
 
-Notice that CUDA does not provide a `length` function like OpenCL, so we have to calculate the length manually.
+ CUDA does not provide a `length` function like OpenCL, so we have to calculate the length manually.
 
 #### Using a `for` Loop in the Kernel
 
-Our next implementation is going to move towards our CPU implementation of Monte Carlo &pi;. We do this by undertaking a number of iterations on each thread rather than a thread calculating a single point. For example, if we consider a solution where we have 2<sup>24</sup> points to check, we need to run 2<sup>24</sup> threads and copy back 2<sup>24</sup> bytes (16 MBytes) of data to main memory to sum the result.
+Our next implementation will use a similar technique to our OpenCL solution, but using a `for` loop and thus launch fewer threads.  We do this by undertaking a number of iterations on each thread rather than a thread calculating a single point. For example, if we consider a solution where we have 2<sup>24</sup> points to check, we need to run 2<sup>24</sup> threads and copy back 2<sup>24</sup> bytes (16 MBytes) of data to main memory to sum the result.
 
 If we allow each thread to calculate a number of iterations, we increase the amount of work a single thread does, while reducing the number of threads run and decreasing the memory usage. For example, if we have 2<sup>24</sup> points to calculate and let each thread run 2<sup>16</sup> iterations (so each thread calculates 2<sup>16</sup> points), then we only run 2<sup>8</sup> threads, and only copy back 2<sup>8</sup> *4 (we need an `int` now) bytes (1024 bytes or 0.001 MBytes).
 
@@ -115,7 +121,7 @@ __global__ void monte_carlo_pi(unsigned int iterations, float2 *points, int *res
 }
 ```
 
-The same approach is required as before, except you have to consider the amount of data required to copy back and and the number of threads against the iterations per thread. You should experiment with different configurations to explore the different performance characteristics.  Also try different thread to block ratios to further analyse performance. You will be surprised how some tweaks can alter performance.
+The same approach is required as before, except you have to consider the amount of data required to copy back and and the number of threads against the iterations per thread. You should experiment with different configurations to explore the different performance characteristics.  Also try different thread-to-block ratios to further analyse performance. You will be surprised how some tweaks can alter performance.
 
 #### Using CUDA to Generate Random Points
 
@@ -130,7 +136,7 @@ curandSetQuasiRandomGeneratorDimensions(rnd, 2);
 curandSetGeneratorOrdering(rnd, CURAND_ORDERING_QUASI_DEFAULT);
 
 // Generate random numbers - point_buffer is an allocated device buffer
-curandGenerateUniform(rnd, (float*)point_buffer, 2 * NUM_POINTS);
+curandGenerateUniform(rnd, (float*)point_buffer, 2 * ITERATIONS);
 
 // Destroy generator
 curandDestroyGenerator(rnd);
@@ -140,7 +146,7 @@ You can use the same kernel as previously. All you are changing is how you are g
 
 #### Summing on the Kernel
 
-Our final approach to Monte Carlo &pi; involves us performing the final stage of the computation (the calculation of &pi;) on the GPU. To do this, we will use a new function within our kernel - `__syncthreads`.  This function allows us to stop all threads within a block at a particular point in our code. *Note that only threads in the same block will synchronise*.  This means that if you have more than one block, not all threads will synchronise. For our implementation to work then you can only have one block.
+Our final approach to Monte Carlo &pi; involves performing the final stage of the computation (the calculation of &pi;) on the GPU. To do this, we will use a new function within our kernel - `__syncthreads`.  This function allows us to stop all threads within a block at a particular point in our code. *Note that only threads in the same block will synchronise*.  This means that if you have more than one block, not all threads will synchronise. For our implementation to work then you can only have one block.  This is effectively the same as the OpenCL version with a `barrier`.
 
 ```cuda
 __global__ void monte_carlo_pi(unsigned int iterations, float2 *points, char *results, double *pi)
@@ -180,7 +186,7 @@ __global__ void monte_carlo_pi(unsigned int iterations, float2 *points, char *re
 }
 ```
 
-Note that you only have to copy back one value - the `float` containing &pi;.  Our host actually needs no buffers of data allocated if you are generating random values using CUDA as well.  All data is just allocated on the GPU.
+Note that you only have to copy back one value - the `float` containing &pi;.  Our host actually needs no buffers of data allocated if you are generating random values using CUDA as well.  All data is just allocated on the GPU.  You can also use CUDA *shared* memory to gain equivalent performance as OpenCL's `__local` memory.
 
 ### Exercises
 

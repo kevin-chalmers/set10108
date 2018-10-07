@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
-project(lab03)
+project(lab09 LANGUAGES CXX CUDA)
+ 
+add_executable(hello hello.cu)
+set_property(TARGET hello PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -11,6 +14,8 @@ link_libraries(${OpenCL_LIBRARIES})
 link_libraries(FreeImage.lib)
 
 add_executable(monte-carlo-pi-cl monte-carlo-pi.cpp)
+add_executable(monte-carlo-cuda monte-carlo-pi.cu)
+set_property(TARGET monte-carlo-cuda CUDA_SEPARABLE_COMPILATION ON)
 add_executable(mandelbrot-cl mandelbrot.cpp)
 add_executable(image-rotate-cl image-rotate.cpp)
 

@@ -1,18 +1,18 @@
 # GPU Programming with CUDA
 
-OpenCL is the equivalent of OpenGL for GPU programming. It runs on pretty much all hardware and has tools provided by a number of vendors. This generality can come at the cost of simplicity and performance. CUDA can be considered the DirectX of GPU programming. It is proprietary (it is provided by Nvidia to run on Nvidia hardware). Tools are from Nvidia. However, there is a simplicity and performance benefit because of this. You will find the general ideas are the same. Our setup is a bit different however.
+OpenCL is the equivalent of OpenGL for GPU programming. It runs on most hardware and has tools provided by a number of vendors.  However, generalisation comes at the cost of simplicity and performance.  CUDA can be considered the DirectX of GPU programming.  It is proprietary as it is provided by Nvidia to run on Nvidai hardware.  There is a simplicity and performance benefit because of the proprietary nature of CUDA. You will find the general ideas are the same as OpenCL just fewer lines of code to get going.
 
 ## Getting Started with CUDA
 
-If you have the CUDA SDK installed, you should have Nvidia Nsight added to Visual Studio. This being the case, you will be able to create a new CUDA application by selecting it during the project creation (under NVIDIA in the templates). Visual Studio will provide an initial kernel. You should delete this code and start from an empty file.
+If you have the CUDA SDK installed, you should have Nvidia Nsight added to Visual Studio.  This being the case, you will be able to create a new CUDA application by selecting it during the project creation (under NVIDIA in the templates). Visual Studio will provide an initial kernel.  You should delete this code and start from an empty file.
 
-First we need to write an application to initialise CUDA.
+First we we need to initialise CUDA.
 
 ```cuda
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
-int main()
+int main(int argc, char **argv)
 {
     // Initialise CUDA - select device
     cudaSetDevice(0);
@@ -21,40 +21,57 @@ int main()
 }
 ```
 
-And that is it. Much simpler than OpenCL. We only need to select a device. If your machine only has one Nvidia device, this is just 0. You can run this application to test it just to ensure everything is set up OK. Let us now output some information from CUDA.
+If you are using Linux, then the compile command is `nvcc` which calls `gcc` as needed.  Therefore the command line arguments you can use are similar.
+
+And that is it. Much simpler than OpenCL as we only need to select a device. If your machine only has one Nvidia device, this is just 0. Run the application to test it just to ensure everything is set up OK. Let us now output some information from CUDA.
 
 ## Getting CUDA Info
 
 Getting information from CUDA is also fairly trivial.
 
 ```cuda
-void cuda_info()
+#include <iostream>
+#include <cuda_runtime.h>
+#include <device_launch_parameters.h>
+
+using namespace std;
+
+int main(int argc, char **argv)
 {
-    // Get CUDA device
-    int device;
-    cudaGetDevice(&device);
-    
-    // Get CUDA device properties
-    cudaDeviceProp properties;
-    cudaGetDeviceProperties(&properties, device);
-    
-    // Display properties
-    cout << "Name: " << properties.name << endl;
-    cout << "CUDA Capability: " << properties.major << "." << properties.minor << endl;
-    cout << "Cores: " << properties.multiProcessorCount << endl;
-    cout << "Memory: " << properties.totalGlobalMem / (1024 * 1024) << "MB" << endl;
-    cout << "Clock freq: " << properties.clockRate / 1000 << "MHz" << endl;
+    // Get number of devices on system
+    int deviceCount; 
+    cudaGetDeviceCount(&deviceCount); 
+
+    cout << "Number of devices: " << deviceCount << endl;
+    for (int i = 0; i < deviceCount; ++i) 
+    {
+        // Get properties for device
+        cudaDeviceProp deviceProp;
+        cudaGetDeviceProperties(&deviceProp, i);
+
+        cout << "Device " << i << endl;
+        cout << "Name " << deviceProp.name << endl;
+        cout << "Revision " << deviceProp.major << "." << deviceProp.minor << endl;
+        cout << "Memory " << deviceProp.totalGlobalMem / 1024 / 1024 << "MB" << endl;
+        cout << "Warp Size " << deviceProp.warpSize << endl;
+        cout << "Clock " << deviceProp.clockRate << endl;
+        cout << "Multiprocessors " << deviceProp.multiProcessorCount << endl;
+    } 
+    return 0;
 }
 ```
 
-You will need to call the operation `cuda_info` from the main application. Doing so will give you:
+An example output is:
 
-\centering
-![CUDA Device
-Information[]{label="fig:cuda-info"}](cuda-info){#fig:cuda-info
-width="\textwidth"}
+```shell
+Name:  GeForce GTX 550 Ti
+CUDA Capability: 2.1
+Cores: 4
+Memory: 1024MB
+Clock freq: 1800MHz
+```
 
-As you can see, this is the same information achieved from calling OpenCL. So why do Nvidia state that they have 192 CUDA cores for the graphics card shown? Each multiprocessor (we have 4) has a number of streaming processors (processors that can execute an instruction for us). Each multiprocessor in the graphics card has in fact 48 of these. Depending on the CUDA capability of your graphics card, you will have a different number of streaming processors per multiprocessor. The table illustrates the various capabilities.
+This is the same type of information achieved from interrogating OpenCL. So why do Nvidia state that they have 192 CUDA cores for the graphics card shown? Each multiprocessor (we have 4) has a number of streaming processors (processors that can execute an instruction for us). Each multiprocessor in the graphics card has in fact 48 of these. Depending on the CUDA capability of your graphics card, you will have a different number of streaming processors per multiprocessor. The table illustrates the various capabilities.
 
 | **Microarchitecture** | **CUDA Capability** | **SP per MP** |
 |-----------------------|---------------------|---------------|

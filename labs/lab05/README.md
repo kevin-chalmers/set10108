@@ -16,7 +16,7 @@ Our first application will initialise MPI, display some local information, and s
 
 using namespace std;
 
-int main()
+int main(int argc, char **argv)
 {
     // Initialise MPI
     auto result = MPI_Init(nullptr, nullptr);
@@ -57,24 +57,24 @@ At the moment you should just check the application builds - running an MPI appl
 You need a command prompt in the directory where you built your application.  Run the following command to execute the application on the local machine in parallel:
 
 ```shell
-mpiexec /np 4 "exe_name.exe"
+mpiexec -n 4 "exe_name.exe"
 ```
 
-Make sure to use the name of your application. `/np` denotes the number of processes to create. The output is similar to:
+Make sure to use the name of your application. `-n` denotes the number of processes to create. The output is similar to:
 
 ```shell
 Number of processors = 4
 Number of processors = 4
 Number of processors = 4
+Number of processors = 4
+My rank = 3
 My rank = 0
 My rank = 2
-My rank = 3
-Number of processors = 4
-Running on = kevin-ultrabook
-Running on = kevin-ultrabook
-Running on = kevin-ultrabook
 My rank = 1
-Running on = kevin-ultrabook
+Running on = xps-13
+Running on = xps-13
+Running on = xps-13
+Running on = xps-13
 ```
 
 ## Using a Remote Host
@@ -101,9 +101,13 @@ The value you want is the IPv4 Address - `146.176.135.164` above.  Next you want
 
 It will listen on the machine and wait for us to allocate a job. We run `mpiexec` with a few more commands:
 
-`mpiexec /np 4 /host <ip-address> <application>`
+`mpiexec -hosts 1 <ip-address> 4 <application-name>`
 
-We tell MPI which host to run on (we can also define multiple hosts).  You will need to copy the application to the other machine. Running this version will give a similar output to before.
+`1` is the number of hosts we are providing, which is one here.  `4` is the number of processes for that host.  We tell MPI which host to run on and can provide multiple hosts.  
+
+`mpiexec -hosts 2 <ip-address1> 8 <ip-address2> 4 <application-name>`
+
+You will need to copy the application to the other machine.  Running this version will give a similar output to before.
 
 It is worth at this point to look at the different flags for the `mpiexec`. You can find these [here](https://docs.microsoft.com/en-us/powershell/high-performance-computing/mpiexec?view=hpc16-ps).
 
@@ -114,7 +118,7 @@ The next few examples will examine different methods for communication.  First w
 ```cpp
 const unsigned int MAX_STRING = 100;
 
-int main()
+int main(int argc, char **argv)
 {
     int num_procs, my_rank;
 
@@ -277,30 +281,34 @@ if (my_rank == 0)
     // Generate data
     data.resize(SIZE);
     generate_data(data);
+    // Scatter the data
+    MPI_Scatter(&data[0], SIZE / num_procs, MPI_FLOAT,  // Source
+        &my_data[0], SIZE / num_procs, MPI_FLOAT,       // Destination
+        0, MPI_COMM_WORLD);
+}
+else
+{
+    MPI_Scatter(nullptr, SIZE / num_procs, MPI_FLOAT,  // Source
+        &my_data[0], SIZE / num_procs, MPI_FLOAT,      // Destination
+        0, MPI_COMM_WORLD);
 }
 
-// Scatter the data
-MPI_Scatter(&data[0], SIZE / num_procs, MPI_FLOAT,  // Source
-    &my_data[0], SIZE / num_procs, MPI_FLOAT,       // Destination
-    0, MPI_COMM_WORLD);
 // Normalise local data
 normalise_vector(my_data);
-// Gather the results
-MPI_Gather(&my_data[0], SIZE / num_procs, MPI_FLOAT,// Source
-    &data[0], SIZE / num_procs, MPI_FLOAT,          // Dest
-    0, MPI_COMM_WORLD);
 
-// Check if main process
+// Gather the results
+
 if (my_rank == 0)
 {
-    // Display results - first 10
-    for (unsigned int i = 0; i < 10; ++i)
-    {
-        cout << "<";
-        for (unsigned int j = 0; j < 3; ++j)
-            cout << data[(i * 4) + j] << ", ";
-        cout << data[(i * 4) + 3] << ">" << endl;
-    }
+    MPI_Gather(&my_data[0], SIZE / num_procs, MPI_FLOAT,// Source
+        &data[0], SIZE / num_procs, MPI_FLOAT,          // Dest
+        0, MPI_COMM_WORLD);
+}
+else
+{
+    MPI_Gather(&my_data[0], SIZE / num_procs, MPI_FLOAT,// Source
+        nullptr, SIZE / num_procs, MPI_FLOAT,           // Dest
+        0, MPI_COMM_WORLD);
 }
 ```
 

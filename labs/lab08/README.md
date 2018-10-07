@@ -64,14 +64,17 @@ int main(int argc, char **argv)
 An example output is:
 
 ```shell
-Name:  GeForce GTX 550 Ti
-CUDA Capability: 2.1
-Cores: 4
-Memory: 1024MB
-Clock freq: 1800MHz
+Number of devices: 1
+Device 0
+Name GeForce GTX TITAN X
+Revision 5.2
+Memory 12288MB
+Warp Size 32
+Clock 1050MHz
+Multiprocessors 24
 ```
 
-This is the same type of information achieved from interrogating OpenCL. So why do Nvidia state that they have 192 CUDA cores for the graphics card shown? Each multiprocessor (we have 4) has a number of streaming processors (processors that can execute an instruction for us). Each multiprocessor in the graphics card has in fact 48 of these. Depending on the CUDA capability of your graphics card, you will have a different number of streaming processors per multiprocessor. The table illustrates the various capabilities.
+This is the same type of information achieved from interrogating OpenCL. So why do Nvidia state that they have 3072 CUDA cores for the graphics card shown? Each multiprocessor (we have 24) has a number of streaming processors (processors that can execute an instruction for us). Each multiprocessor in the graphics card has 128 of these. Depending on the CUDA capability of your card, you will have a different number of streaming processors per multiprocessor. The table illustrates the various capabilities.
 
 | **Microarchitecture** | **CUDA Capability** | **SP per MP** |
 |-----------------------|---------------------|---------------|
@@ -84,11 +87,11 @@ This is the same type of information achieved from interrogating OpenCL. So why 
 | Volta                 |  7.0 - 7.2          |         64    |
 | Turing                |  7.5                |               |
 
-A GTX 780 has Kepler architecture and has 12 multiprocessors. This means that the 780 will have 2304 cores in total, running at approximately 862 MHz. This means that we have close to 2 THz of performance.
+A GTX Titan X has Maxwell architecture and has 24 multiprocessors. This means that the Titan X will have 3072 cores in total, running at approximately 1050MHz. This means that we over 3.2 THz of performance (if that was how we measured such things).
 
 ## CUDA Kernels
 
-One of the main differences CUDA provides from OpenCL is that we are using a single file solution. That means that we will write our CUDA kernel in the same file as our main method. This keeps us closer to standard C++ development, and we do not need to load and compile external.
+One of the main differences CUDA provides from OpenCL is that we have a single file solution. That means we write our CUDA kernel in the same file as our main method. This keeps us closer to standard C++ development, and we do not need to load and compile external.
 
 ```cuda
 __global__ void vecadd(const int *A, const int *B, int *C)
@@ -106,11 +109,9 @@ __global__ void vecadd(const int *A, const int *B, int *C)
 }
 ```
 
-We will get to how we launch the kernel soon. First let us look at memory management between the CPU and GPU.
+## Passing Data to CUDA Kernels
 
-## Passing Data to CUDA
-
-As with OpenCL, we have to work between host memory (main memory) and device memory (GPU memory). If you remember with OpenCL we first declared and initialised some host memory. We will do the same this time.
+As OpenCL, we have to work between host memory (main memory) and device memory (GPU memory).  We first declare and initialise host memory.
 
 ```cuda
 // Create host memory
@@ -124,7 +125,7 @@ for (unsigned int i = 0; i < ELEMENTS; ++i)
     A[i] = B[i] = i;
 ```
 
-We also need to initialise memory on our device.
+To initialise memory on the device:
 
 ```cuda
 // Declare buffers
@@ -136,15 +137,15 @@ cudaMalloc((void**)&buffer_B, data_size);
 cudaMalloc((void**)&buffer_C, data_size);
 ```
 
-Notice that we don't need any special types with CUDA. We simply declare an `int` pointer as standard. The only difference is in how we allocate memory. You may be familiar with malloc from standard C. `cudaMalloc` undertakes the same functionality but for allocating memory on the GPU.
+Notice we don't need special types with CUDA.  We declare an `int` pointer as standard. The difference is in how we allocate memory.  You may be familiar with `malloc` from standard C. `cudaMalloc` undertakes the same functionality but for allocating memory on the GPU.
 
-All we need to do now is copy the memory from the host to the device. We do this using the `cudaMemcpy` operation:
+To copy the memory from the host to the device we use `cudaMemcpy`:
 
 ```cuda
 cudaMemcpy(dest, src, size, direction);
 ```
 
-The `direction` value is used to tell CUDA which way the data is being copied (host to device, device to host, device to device). For our needs, we use:
+`direction` tell sCUDA which way the data is being copied (host to device, device to host, device to device).
 
 ```cuda
 // Write host data to device
@@ -154,7 +155,7 @@ cudaMemcpy(buffer_B, &B[0], data_size, cudaMemcpyHostToDevice);
 
 ## Running and Getting Results from CUDA
 
-Now we just need to run the kernel.  We do this as:
+To run a kernel:
 
 ```cuda
 // Run kernel with one thread for each element
@@ -165,11 +166,9 @@ vecadd<<<ELEMENTS / 1024, 1024>>>(buffer_A, buffer_B, buffer_C);
 cudaDeviceSynchronize();
 ```
 
-Notice that it looks very similar to running the operation normally.  The only difference is that we are defining the number of blocks (`ELEMENTS / 1024`) and the number of threads per block (`1024`). The call to `cudaDeviceSynchronize` means that we wait for the kernel to complete executing before continuing.
+We define the number of blocks (`ELEMENTS / 1024`) and the number of threads per block (`1024`). The call to `cudaDeviceSynchronize` means we wait for the kernel to complete before continuing.
 
-To get our results back, we simply call `cudaMemcpy` again.
-Listing [\[lst:cuda-copy-host\]](#lst:cuda-copy-host){reference-type="ref"
-reference="lst:cuda-copy-host"} provides the necessary call.
+To get our results back we call `cudaMemcpy` again.
 
 ```cuda
 // Read output buffer back to the host

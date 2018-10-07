@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(lab03)
+project(lab07)
 
 set(CMAKE_CXX_STANDARD 11)
 

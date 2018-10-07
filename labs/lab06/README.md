@@ -257,7 +257,7 @@ Area under curve: 1.87253e-007
 
 ## Performance Evaluation of MPI
 
-We will now look at a how we measure latency and bandwidth using MPI.  These values are essential if you undertake any serious distribution of tasks and data communication.  However, you wil probably find that the stated network speed is what we get in a lab environment.
+We will now look at a how we measure latency and bandwidth using MPI.  These values are essential if you undertake any serious distribution of tasks and data communication.  However, you will probably find that the stated network speed is what we get in a lab environment.
 
 ### Measuring Latency
 

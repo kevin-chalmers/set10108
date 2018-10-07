@@ -4,15 +4,7 @@ For the next two practicals it might be useful to work with a partner so you can
 
 ## Installing MPI
 
-We are going to use Microsoft's HPC SDK to support our MPI work. To do this you need to install the following three items:
-
-**NOW REPLACED BY 2016**
-
--   Microsoft HPC Pack 2012 Client Components
--   Microsoft HPC Pack 2012 SDK
--   Microsoft HPC Pack 2012 MS-MPI Redistributable Pack
-
-You need to install these on every machine you plan to use in your application. You will also need to add the relevant include and library folders to your project - these will be found in the **Program Files** folder. The library that you need to link against is called `msmpi.lib`.
+We are going to use [Microsoft MPI](https://www.microsoft.com/en-us/download/details.aspx?id=56727) to support our MPI work as the lab has Windows installed.  You will need **both the runtime and the SDK**.  MPI on Linux is generally easier to manage, and there are a few variants out there.  You will need to add the relevant include and library folders to your project - these can normally be found in the `C:\Program Files (x86)\Microsoft SDKs\MPI\` folder. The library that you need to link against is called `msmpi.lib`.
 
 ## First MPI Application
 

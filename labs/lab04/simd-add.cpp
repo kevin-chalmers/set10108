@@ -64,8 +64,8 @@ int main(int argc, char **argv)
     }
     // Now using _m128
     {
-        v4 *d1 = (v4*)_aligned_malloc(sizeof(v4) * 500000, 16);
-        v4 *d2 = (v4*)_aligned_malloc(sizeof(v4) * 500000, 16);
+        v4 *d1 = (v4*)_aligned_malloc(sizeof(v4) * 250000, 16);
+        v4 *d2 = (v4*)_aligned_malloc(sizeof(v4) * 250000, 16);
         auto start = system_clock::now();
         for (size_t count = 0; count < 100; ++count)
         {
@@ -79,8 +79,8 @@ int main(int argc, char **argv)
     }
     // Now using _m256
     {
-        v8 *d1 = (v8*)_aligned_malloc(sizeof(v8) * 250000, 32);
-        v8 *d2 = (v8*)_aligned_malloc(sizeof(v8) * 250000, 32);
+        v8 *d1 = (v8*)_aligned_malloc(sizeof(v8) * 125000, 32);
+        v8 *d2 = (v8*)_aligned_malloc(sizeof(v8) * 125000, 32);
         auto start = system_clock::now();
         for (size_t count = 0; count < 100; ++count)
         {
